@@ -4,71 +4,71 @@ use rand::thread_rng;
 use rand::Rng;
 
 #[derive(Clone, Copy)]
-struct Position {
-    x: u16,
-    z: u16
+pub struct Position {
+    pub x: u16,
+    pub z: u16
 }
 
 impl Position {
-    fn new(x: u16, z: u16) -> Position {
+    pub fn new(x: u16, z: u16) -> Position {
         Position { x, z } 
     }
 }
 
 #[derive(Clone, Copy)]
-enum Tile {
-    Food(Food),
-    Organism(Organism),
+pub enum Tile<'a> {
+    Food(&'a Food),
+    Organism(&'a Organism),
     None
 }
 
 #[derive(Clone, Copy)]
-struct Food {
-    count: u64
+pub struct Food {
+    pub count: u64
 }
 
 impl Food {
-    fn new(count: u64) -> Food {
+    pub fn new(count: u64) -> Food {
         Food { count }
     }
 
-    fn add(&mut self, count: u64) {
+    pub fn add(&mut self, count: u64) {
         self.count += count;
     }
 
-    fn reduce(&mut self, count: u64) {
+    pub fn reduce(&mut self, count: u64) {
         self.count -= count;
     }
 }
 
 #[derive(Clone, Copy)]
-struct Traits {
-    speed: u8,
-    size: u8,
-    sense_radius: u8
+pub struct Traits {
+    pub speed: u8,
+    pub size: u8,
+    pub sense_radius: u8
 }
 
 impl Traits {
-    fn new(speed: u8, size: u8, sense_radius: u8) -> Traits {
+    pub fn new(speed: u8, size: u8, sense_radius: u8) -> Traits {
         Traits { speed, size, sense_radius }
     }
 }
 
 #[derive(Clone, Copy)]
-struct Organism {
-    traits: Traits,
-    food_eaten: u16,
-    energy: u16,
-    position: Position,
+pub struct Organism {
+    pub traits: Traits,
+    pub food_eaten: u16,
+    pub energy: u16,
+    pub position: Position,
 }
 
 impl Organism {
-    fn new(traits: Traits) -> Organism {
+    pub fn new(traits: Traits) -> Organism {
         let mut rng = thread_rng();
         Organism { traits, food_eaten: 0, energy: 0, position: Position::new(rng.gen_range(0..512), rng.gen_range(0..512)) }
     }
 
-    fn reproduce(&mut self) -> Organism {
+    pub fn reproduce(&mut self) -> Organism {
         let mut rng = thread_rng();
         let mut speed = self.traits.speed;
         let mut size = self.traits.size;
@@ -109,15 +109,15 @@ impl Organism {
     }
 }
 
-struct World {
-    organisms: Vec<Organism>,
-    food: Food,
-    day: u32,
-    grid: [[Tile; 512]; 512] // 512x512 Grid
+pub struct World<'a> {
+    pub organisms: Vec<Organism>,
+    pub food: Food,
+    pub day: u32,
+    pub grid: [[Tile<'a>; 512]; 512] // 512x512 Grid
 }
 
-impl World {
-    fn new(food: Food) -> World {
+impl World<'_> {
+    pub fn new<'a>(food: Food) -> World<'a> {
         World {
             organisms: Vec::new(),
             food,
@@ -126,13 +126,19 @@ impl World {
         }
     }
 
-    fn add_organism(&mut self, organism: Organism) {
+    pub fn add_organism(&mut self, organism: Organism) {
         self.organisms.push(organism);
     }
 
-    fn spawn_food(&self) {
+    pub fn spawn_food(&self) {
+        let mut rng = thread_rng();
         for _ in 0..self.food.count {
-            let mut rng = thread_rng();
+            let x = rng.gen_range(0..512);
+            let z = rng.gen_range(0..512);
+            match self.grid[x][z] {
+                Tile::None => self.grid[x][z] = Tile::Food(&self.food),
+                _ => println!("error fix me")
+            };
         }
     }
 }
