@@ -58,8 +58,8 @@ impl Organism {
 
     pub fn movement(&mut self, world: &mut world::World) {
         let mut rng = thread_rng();
-        let direction = rng.gen_range(0..4);
-        let (old_x, old_z) = self.position.get_position();
+        let (old_x, old_y) = self.position.get_position();
+        let direction = rng.gen_range(0..8);
 
 
         
@@ -75,14 +75,29 @@ impl Organism {
             }
             3 => {
                 self.position.y -= self.traits.speed as usize * 5;
-            }
+            },
+            4 => {
+                self.position.x += self.traits.speed as usize * 5;
+                self.position.y += self.traits.speed as usize * 5;
+            },
+            5 => {
+                self.position.x += self.traits.speed as usize * 5;
+                self.position.y -= self.traits.speed as usize * 5;
+            },
+            6 => {
+                self.position.x -= self.traits.speed as usize * 5;
+                self.position.y -= self.traits.speed as usize * 5;
+            },
+            7 => {
+                self.position.x -= self.traits.speed as usize * 5;
+                self.position.y += self.traits.speed as usize * 5;
+            },
             _ => () 
         }
-        match world.grid[old_x][old_z] {
-            tile::Tile::Food(_) => self.food_eaten += 1,
-            _ => ()
+        if let tile::Tile::Food(_) = world.grid[self.position.x][self.position.y] {
+            self.food_eaten += 1
         }
-        world.grid[old_x][old_z] = tile::Tile::None;
+        world.grid[old_x][old_y] = tile::Tile::None;
         world.grid[self.position.x][self.position.y] = tile::Tile::Organism(*self);
     }
 }
